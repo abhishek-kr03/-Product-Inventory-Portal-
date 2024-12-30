@@ -1,5 +1,4 @@
 ---
-
 # **Product Inventory Portal**
 
 A web-based application to manage product inventory, including features like pagination, product details display, and modal-based principle details. Built using **Nuxt.js** and **Vue.js** with data fetched via REST APIs.
@@ -126,3 +125,4 @@ product-inventory-portal/
 - Implement authentication and authorization for admin roles.
 
 ---
+
