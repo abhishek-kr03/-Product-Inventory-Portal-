@@ -1,69 +1,128 @@
-# product-inventory-portal
+---
 
-## Build Setup
+# **Product Inventory Portal**
 
+A web-based application to manage product inventory, including features like pagination, product details display, and modal-based principle details. Built using **Nuxt.js** and **Vue.js** with data fetched via REST APIs.
+
+---
+
+## **Features**
+- Display a list of products with detailed attributes like name, code, batch, price, and quantity.
+- Pagination support to view data in smaller chunks (10 items per page).
+- View detailed principle information via a modal popup.
+- Graceful handling of missing or `null` principles with fallback messages.
+- Responsive and user-friendly UI.
+
+---
+
+## **Technologies Used**
+- **Frontend**: Nuxt.js, Vue.js
+- **Styling**: Bootstrap
+- **Backend API**: Axios for API calls
+- **Server**: Node.js with a RESTful API endpoint
+
+---
+
+## **Project Structure**
 ```bash
-# install dependencies
-$ npm install
-
-# serve with hot reload at localhost:3000
-$ npm run dev
-
-# build for production and launch server
-$ npm run build
-$ npm run start
-
-# generate static project
-$ npm run generate
+product-inventory-portal/
+├── components/
+│   ├── ProductTable.vue     # Component for rendering the table with product details and pagination
+│
+├── pages/
+│   ├── index.vue            # Main entry page fetching product data
+│
+├── plugins/
+│   ├── axios.js             # Axios configuration
+│
+├── static/
+│   ├── assets               # Static assets (images, etc.)
+│
+├── nuxt.config.js           # Nuxt.js configuration file
+├── package.json             # Project dependencies and scripts
 ```
 
-For detailed explanation on how things work, check out the [documentation](https://nuxtjs.org).
+---
 
-## Special Directories
+## **Setup and Installation**
 
-You can create the following extra directories, some of which have special behaviors. Only `pages` is required; you can delete them if you don't want to use their functionality.
+### Prerequisites
+- **Node.js**: Ensure you have Node.js installed (>=16.x.x).
+- **npm/yarn**: Install npm (default with Node.js) or yarn.
 
-### `assets`
+### Installation Steps
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/your-username/product-inventory-portal.git
+   cd product-inventory-portal
+   ```
 
-The assets directory contains your uncompiled assets such as Stylus or Sass files, images, or fonts.
+2. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/assets).
+3. **Run the Development Server**:
+   ```bash
+   npm run dev
+   ```
 
-### `components`
+4. **Open in Browser**:
+   Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-The components directory contains your Vue.js components. Components make up the different parts of your page and can be reused and imported into your pages, layouts and even other components.
+---
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/components).
+## **Usage**
 
-### `layouts`
+### **Fetch Product Data**
+- The application fetches all product data from the backend API:
+  ```
+  GET http://77.37.45.2:8091/api/v1/product/fetchallproducts
+  ```
 
-Layouts are a great help when you want to change the look and feel of your Nuxt app, whether you want to include a sidebar or have distinct layouts for mobile and desktop.
+### **Features**
+1. **Pagination**:
+   - Navigate between pages using the **Previous** and **Next** buttons.
+   - Displays 10 products per page.
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/layouts).
+2. **Principle Details**:
+   - Click the **"View Principle"** button to view principle details in a modal.
+   - Displays principle name and ID.
+   - If no principle is available, it shows **"No Principle Available"**.
 
+3. **Error Handling**:
+   - Handles API errors and displays them in the browser console.
+   - Gracefully handles `null` or `undefined` principles.
 
-### `pages`
+---
 
-This directory contains your application views and routes. Nuxt will read all the `*.vue` files inside this directory and setup Vue Router automatically.
+## **File Explanation**
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/get-started/routing).
+### `ProductTable.vue`
+- Displays product data in a tabular format.
+- Includes pagination logic to display 10 items per page.
+- Renders modal details for principles when clicked.
 
-### `plugins`
+### `index.vue`
+- Fetches product data from the API on page load.
+- Passes data to `ProductTable` as props.
 
-The plugins directory contains JavaScript plugins that you want to run before instantiating the root Vue.js Application. This is the place to add Vue plugins and to inject functions or constants. Every time you need to use `Vue.use()`, you should create a file in `plugins/` and add its path to plugins in `nuxt.config.js`.
+---
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/plugins).
+## **Screenshots**
 
-### `static`
+### **Table View with Pagination**
+![Table View](https://via.placeholder.com/800x400.png?text=Table+View)
 
-This directory contains your static files. Each file inside this directory is mapped to `/`.
+### **Principle Modal**
+![Principle Modal](https://via.placeholder.com/800x400.png?text=Principle+Modal)
 
-Example: `/static/robots.txt` is mapped as `/robots.txt`.
+---
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/static).
+## **Future Enhancements**
+- Add **Create**, **Update**, and **Delete** functionalities for products.
+- Enhance table sorting by column (e.g., ID, Name, Price).
+- Add filters for categories and price ranges.
+- Implement authentication and authorization for admin roles.
 
-### `store`
-
-This directory contains your Vuex store files. Creating a file in this directory automatically activates Vuex.
-
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/store).
+---
