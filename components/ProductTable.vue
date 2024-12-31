@@ -87,7 +87,7 @@
     </table>
 
     <!-- Pagination Controls -->
-    <div class="d-flex justify-content-center mt-3">
+    <div class="d-flex justify-content-center mb-3">
       <button
         class="btn btn-primary mx-1"
         :disabled="currentPage === 1"
