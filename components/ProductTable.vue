@@ -1,17 +1,67 @@
 <template>
   <div>
+    <!-- Filter and Sorting Controls -->
+    <div class="d-flex justify-content-between mb-3">
+      <!-- Search Dropdown and Input -->
+      <div>
+        <label for="searchColumn" class="form-label">Search By:</label>
+        <select v-model="searchColumn" id="searchColumn" class="form-select">
+          <option value="id">ID</option>
+          <option value="name">Name</option>
+          <option value="productCode">Product Code</option>
+          <option value="batchCode">Batch Code</option>
+          <option value="dpvalue">DP Value</option>
+          <option value="expiryDate">Expiry Date</option>
+          <option value="mrp">MRP</option>
+          <option value="quantity">Quantity</option>
+          <option value="principle">Principle</option>
+        </select>
+        <input
+          v-model="searchTerm"
+          type="text"
+          placeholder="Search..."
+          class="form-control mt-2"
+        />
+      </div>
+
+      <!-- Export Button -->
+      <div>
+        <button class="btn btn-success mx-2" @click="handleExportToExcel">
+          Export to Excel
+        </button>
+      </div>
+    </div>
+
+    <!-- Reset Button -->
+    <div>
+      <button class="btn btn-secondary mx-2 mb-2" @click="resetData">Reset</button>
+    </div>
+
+    <!-- Products Table -->
     <table class="table table-bordered table-striped">
       <thead>
         <tr>
           <th>ID</th>
-          <th>Name</th>
+          <th @click="toggleSort('name')">
+            Name
+            <span class="sort-icon" :class="{ clickable: true }">{{ getSortIcon('name') }}</span>
+          </th>
           <th>Product Code</th>
           <th>Batch Code</th>
           <th>DP Value</th>
           <th>Expiry Date</th>
-          <th>MRP</th>
-          <th>Quantity</th>
-          <th>Principle</th>
+          <th @click="toggleSort('mrp')">
+            MRP
+            <span class="sort-icon" :class="{ clickable: true }">{{ getSortIcon('mrp') }}</span>
+          </th>
+          <th @click="toggleSort('quantity')">
+            Quantity
+            <span class="sort-icon" :class="{ clickable: true }">{{ getSortIcon('quantity') }}</span>
+          </th>
+          <th @click="toggleSort('principle')">
+            Principle
+            <span class="sort-icon" :class="{ clickable: true }">{{ getSortIcon('principle') }}</span>
+          </th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -25,15 +75,8 @@
           <td>{{ product.expiryDate }}</td>
           <td>{{ product.mrp }}</td>
           <td>{{ product.quantity }}</td>
-          <td>
-            <button 
-              v-if="product.principle" 
-              class="btn btn-info" 
-              @click="showPrincipleDetails(product.principle)"
-            >
-              View Principle
-            </button>
-            <span v-else class="text-muted">No Principle Available</span>
+          <td :class="{ 'text-muted': !product.principle }">
+            {{ product.principle ? product.principle.name : 'No Principle Available' }}
           </td>
           <td>
             <button class="btn btn-warning" @click="editProduct(product)">Edit</button>
@@ -61,32 +104,12 @@
         Next
       </button>
     </div>
-
-    <!-- Principle Details Modal -->
-    <div v-if="showModal" class="modal" tabindex="-1" style="display: block; background-color: rgba(0, 0, 0, 0.5);">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Principle Details</h5>
-            <button type="button" class="btn-close" @click="closeModal"></button>
-          </div>
-          <div class="modal-body">
-            <template v-if="selectedPrinciple">
-              <p><strong>Name:</strong> {{ selectedPrinciple.name }}</p>
-              <p><strong>ID:</strong> {{ selectedPrinciple.id }}</p>
-            </template>
-            <p v-else>No principle information available.</p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="closeModal">Close</button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
+import { exportToExcel } from "@/plugins/excelExport"; // Import the utility function
+
 export default {
   props: {
     products: Array, // Full list of products passed from the parent component
@@ -95,70 +118,139 @@ export default {
     return {
       currentPage: 1, // Current page number
       itemsPerPage: 10, // Number of items per page
-      showModal: false, // Controls the visibility of the modal
-      selectedPrinciple: null, // Holds the data of the selected principle
+      searchColumn: "name", // Default column for search
+      searchTerm: "", // Search term input
+      originalProducts: [], // Original data from the API (for reset)
+      displayedProducts: [], // Displayed data (sorted or filtered)
+      sortColumn: null, // Current column for sorting
+      sortOrder: null, // Current sort order ("ascending" or "descending")
     };
   },
   computed: {
-    // Calculate the total number of pages
-    totalPages() {
-      return Math.ceil(this.products.length / this.itemsPerPage);
+    filteredProducts() {
+      if (!this.searchTerm.trim()) return this.displayedProducts;
+
+      return this.displayedProducts.filter((product) => {
+        if (this.searchColumn === "principle") {
+          return (
+            product.principle &&
+            product.principle.name
+              .toString()
+              .toLowerCase()
+              .includes(this.searchTerm.toLowerCase())
+          );
+        } else {
+          const value = product[this.searchColumn]
+            ? product[this.searchColumn].toString().toLowerCase()
+            : "";
+          return value.includes(this.searchTerm.toLowerCase());
+        }
+      });
     },
-    // Get the products for the current page
     paginatedProducts() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       const end = start + this.itemsPerPage;
-      return this.products.slice(start, end);
+      return this.filteredProducts.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredProducts.length / this.itemsPerPage);
+    },
+  },
+  watch: {
+    products: {
+      immediate: true,
+      handler(newProducts) {
+        this.originalProducts = [...newProducts];
+        this.displayedProducts = [...newProducts];
+      },
     },
   },
   methods: {
     changePage(page) {
       this.currentPage = page;
     },
+    resetData() {
+      this.searchTerm = "";
+      this.sortColumn = null;
+      this.sortOrder = null;
+      this.displayedProducts = [...this.originalProducts];
+      this.currentPage = 1;
+    },
+    toggleSort(column) {
+      if (this.sortColumn === column) {
+        this.sortOrder =
+          this.sortOrder === "ascending" ? "descending" : "ascending";
+      } else {
+        this.sortColumn = column;
+        this.sortOrder = "ascending";
+      }
+
+      this.applySorting();
+    },
+    applySorting() {
+      if (!this.sortColumn) {
+        this.displayedProducts = [...this.originalProducts];
+        return;
+      }
+
+      this.displayedProducts.sort((a, b) => {
+        const valueA =
+          this.sortColumn === "principle"
+            ? a.principle?.name || ""
+            : a[this.sortColumn];
+        const valueB =
+          this.sortColumn === "principle"
+            ? b.principle?.name || ""
+            : b[this.sortColumn];
+
+        if (this.sortOrder === "ascending") {
+          return valueA > valueB ? 1 : -1;
+        } else {
+          return valueA < valueB ? 1 : -1;
+        }
+      });
+    },
+    getSortIcon(column) {
+      if (this.sortColumn !== column) return "⬍";
+      return this.sortOrder === "ascending" ? "⬆" : "⬇";
+    },
     editProduct(product) {
-      console.log('Edit product:', product);
+      console.log("Edit product:", product);
     },
     deleteProduct(productId) {
-      console.log('Delete product:', productId);
+      console.log("Delete product:", productId);
     },
-    showPrincipleDetails(principle) {
-      if (principle) {
-        this.selectedPrinciple = principle; // Set the selected principle
-      } else {
-        this.selectedPrinciple = null; // Handle null principle
-      }
-      this.showModal = true; // Show the modal
-    },
-    closeModal() {
-      this.showModal = false; // Hide the modal
-      this.selectedPrinciple = null; // Clear the selected principle
+    handleExportToExcel() {
+      exportToExcel(this.products, "Products.xlsx"); // Call the utility function
     },
   },
 };
 </script>
 
 <style>
-/* Optional styles for pagination buttons */
-button[disabled] {
-  cursor: not-allowed;
-  opacity: 0.5;
+/* Styles for table headers and sort icons */
+th {
+  text-align: left;
 }
 
-/* Modal styles */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1050;
+.sort-icon {
+  cursor: pointer;
+  margin-left: 12px;
+  color: #6c757d; /* Default gray color for the icon */
+  font-size: 25px;
+  transition: color 0.3s ease;
 }
-.modal-dialog {
-  background: white;
-  border-radius: 5px;
-  overflow: hidden;
+
+.sort-icon.clickable:hover {
+  color: #007bff; /* Blue color on hover */
 }
+
+.text-muted {
+  color: lightgrey; /* or use #d3d3d3 or any desired light grey shade */
+}
+
+/* .btn-success, .btn-secondary{
+  margin : 5px;
+} */
+
 </style>
