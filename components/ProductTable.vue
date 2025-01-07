@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Filter and Sorting Controls -->
-    <div class="d-flex justify-content-between mb-3">
+    <div class="d-flex justify-content-between mb-2">
       <!-- Search Dropdown and Input -->
       <div>
         <label for="searchColumn" class="form-label">Search By:</label>
